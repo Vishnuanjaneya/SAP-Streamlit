@@ -358,7 +358,7 @@ if not df.empty:
     df_original['conflicts'] = pd.to_numeric(df_original.get('conflicts', 0), errors='coerce').fillna(0)
     df_original['history_failures'] = pd.to_numeric(df_original.get('history_failures', 0), errors='coerce').fillna(0)
 
-    df_processed = preprocess(df_original)
+    df_processed = preprocess(df_original.copy())
 
     df_original['Predicted Risk'] = predict(model, df_processed)
 
@@ -938,7 +938,7 @@ if not df.empty:
                 "change_request_status":status
             }])
 
-            processed  = preprocess(new_df)
+            processed  = preprocess(new_df.copy())
             pred       = predict(model, processed)[0]
             conf, cls, proba_vals = get_confidence(processed)
             confidence = round(float(conf[0]),2) if conf is not None else None
@@ -1068,11 +1068,11 @@ if not df.empty:
                 "transport_stage":b_stg,"change_request_status":b_stat
             }])
 
-            pred_a = predict(model, preprocess(df_a))[0]
-            pred_b = predict(model, preprocess(df_b))[0]
+            pred_a = predict(model, preprocess(df_a.copy()))[0]
+            pred_b = predict(model, preprocess(df_b.copy()))[0]
 
-            ca,_,_ = get_confidence(preprocess(df_a))
-            cb,_,_ = get_confidence(preprocess(df_b))
+            ca,_,_ = get_confidence(preprocess(df_a.copy()))
+            cb,_,_ = get_confidence(preprocess(df_b.copy()))
             conf_a = round(float(ca[0]),2) if ca is not None else "N/A"
             conf_b = round(float(cb[0]),2) if cb is not None else "N/A"
 
