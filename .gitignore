@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Secrets
+.env
+firebase_key.json
+
+# VS Code
+.vscode/
+
+# Streamlit local secrets
+.streamlit/secrets.toml
