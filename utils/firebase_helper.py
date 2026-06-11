@@ -3,6 +3,10 @@ from firebase_admin import credentials, firestore
 import pandas as pd
 import os
 import datetime
+import streamlit as st
+
+firebase_credentials = dict(st.secrets["firebase"])
+cred = credentials.Certificate(firebase_credentials)
 
 # ---------------- INIT FIREBASE ----------------
 def init_firebase():
