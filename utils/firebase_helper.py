@@ -7,12 +7,32 @@ import streamlit as st
 # ---------------- INIT FIREBASE ----------------
 def init_firebase():
     if not firebase_admin._apps:
-        firebase_credentials = dict(st.secrets["firebase"])
-        cred = credentials.Certificate(firebase_credentials)
+
+        try:
+            # Streamlit Cloud
+            firebase_credentials = dict(st.secrets["firebase"])
+
+            # Convert \n into real newlines if stored that way
+            if "private_key" in firebase_credentials:
+                firebase_credentials["private_key"] = (
+                    firebase_credentials["private_key"]
+                    .replace("\\n", "\n")
+                )
+
+            cred = credentials.Certificate(firebase_credentials)
+
+        except Exception:
+            # Local development fallback
+            firebase_path = os.getenv(
+                "FIREBASE_KEY_PATH",
+                "firebase_key.json"
+            )
+
+            cred = credentials.Certificate(firebase_path)
+
         firebase_admin.initialize_app(cred)
 
     return firestore.client()
-
 # ---------------- UPLOAD CSV TO FIRESTORE ----------------
 def upload_dataframe_to_firestore(df, collection="transports"):
     db = init_firebase()

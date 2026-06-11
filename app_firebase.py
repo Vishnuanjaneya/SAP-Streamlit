@@ -267,7 +267,7 @@ if data_source == "📁 Upload CSV":
         if st.sidebar.button("🔥 Save to Firebase"):
             with st.spinner("Uploading to Firebase Firestore..."):
                 try:
-                    count = upload_dataframe_to_firestore(df)
+                    count = upload_dataframe_to_firestore(df.head(100))
                     st.sidebar.success(f"✅ {count} records saved to Firebase!")
                 except Exception as e:
                     st.sidebar.error(f"Firebase Error: {e}")
