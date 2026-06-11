@@ -267,7 +267,7 @@ if data_source == "📁 Upload CSV":
         if st.sidebar.button("🔥 Save to Firebase"):
             with st.spinner("Uploading to Firebase Firestore..."):
                 try:
-                    count = upload_dataframe_to_firestore(df.head(100))
+                    count = upload_dataframe_to_firestore(df)
                     st.sidebar.success(f"✅ {count} records saved to Firebase!")
                 except Exception as e:
                     st.sidebar.error(f"Firebase Error: {e}")
@@ -358,7 +358,7 @@ if not df.empty:
     df_original['conflicts'] = pd.to_numeric(df_original.get('conflicts', 0), errors='coerce').fillna(0)
     df_original['history_failures'] = pd.to_numeric(df_original.get('history_failures', 0), errors='coerce').fillna(0)
 
-    df_processed = preprocess(df_original.copy())
+    df_processed = preprocess(df_original)
 
     df_original['Predicted Risk'] = predict(model, df_processed)
 
@@ -1282,8 +1282,8 @@ if not df.empty:
                 "Average cost per SAP incident (₹)",
                 min_value=10000,
                 max_value=10000000,
-                value=500000,
-                step=50000,
+                value=50000,
+                step=10000,
                 help="Include downtime, IT overtime, business loss"
             )
             downtime_hours = st.number_input(
@@ -1297,8 +1297,8 @@ if not df.empty:
                 "Business loss per hour (₹)",
                 min_value=1000,
                 max_value=1000000,
-                value=100000,
-                step=10000,
+                value=10000,
+                step=5000,
                 help="Revenue/productivity lost per hour of downtime"
             )
 
@@ -1308,14 +1308,14 @@ if not df.empty:
                 "AI Prevention Rate (%)",
                 min_value=50,
                 max_value=95,
-                value=70,
+                value=60,
                 help="% of HIGH risk transports caught before failure"
             )
             transports_per_year = st.number_input(
                 "Transports deployed per year",
                 min_value=100,
                 max_value=10000000,
-                value=min(int(total_n * 12), 10000000),
+                value=1000,
                 step=100,
                 help="Estimated annual transport volume"
             )
