@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import pandas as pd
 import datetime
+import os
 import streamlit as st
 
 # ---------------- INIT FIREBASE ----------------
@@ -27,12 +28,12 @@ def init_firebase():
                 "FIREBASE_KEY_PATH",
                 "firebase_key.json"
             )
-
             cred = credentials.Certificate(firebase_path)
 
         firebase_admin.initialize_app(cred)
 
     return firestore.client()
+
 # ---------------- UPLOAD CSV TO FIRESTORE ----------------
 def upload_dataframe_to_firestore(df, collection="transports"):
     db = init_firebase()
@@ -75,16 +76,15 @@ def fetch_from_firestore(collection="transports"):
 
     df = pd.DataFrame([doc.to_dict() for doc in docs])
 
+    # ✅ Fix numeric encoded columns back to original names
     module_mapping = {
         0: 'FI', 1: 'MM', 2: 'SD', 3: 'HR',
         '0': 'FI', '1': 'MM', '2': 'SD', '3': 'HR'
     }
-
     stage_mapping = {
         0: 'Development', 1: 'Quality', 2: 'Production',
         '0': 'Development', '1': 'Quality', '2': 'Production'
     }
-
     status_mapping = {
         0: 'Approved', 1: 'Pending', 2: 'Rejected',
         '0': 'Approved', '1': 'Pending', '2': 'Rejected'
