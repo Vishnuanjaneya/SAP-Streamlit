@@ -18,6 +18,8 @@ import datetime
 from sklearn.ensemble import IsolationForest
 import time
 import uuid
+import re
+from xml.sax.saxutils import escape
 
 from utils.gauge import risk_gauge
 from utils.ml_helper import preprocess, predict
@@ -103,7 +105,7 @@ def save_chart(fig):
 def ask_ai(prompt: str) -> str:
     try:
         res = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": prompt}]
         )
         return res.choices[0].message.content
@@ -113,7 +115,7 @@ def ask_ai(prompt: str) -> str:
 def ask_ai_with_history(messages: list) -> str:
     try:
         res = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=messages
         )
         return res.choices[0].message.content
@@ -126,6 +128,24 @@ def get_confidence(df_proc):
         return (proba.max(axis=1)*100).round(2), model.classes_, proba
     except:
         return None, None, None
+
+def clean_for_pdf(text: str) -> str:
+    """Sanitize AI-generated text so reportlab's Paragraph parser doesn't choke
+    on markdown tables, unescaped &, <, >, or malformed HTML-like tags."""
+    if not text:
+        return ""
+    # Strip markdown table pipes/separators - convert to plain readable text
+    text = re.sub(r'\|', ' - ', text)
+    text = re.sub(r'-{3,}', '', text)
+    # Escape XML-special chars first so stray & < > don't break the parser
+    text = escape(text)
+    # Re-allow only the tags reportlab actually supports, correctly closed
+    text = re.sub(r'&lt;br\s*/?&gt;', '<br/>', text, flags=re.IGNORECASE)
+    text = re.sub(r'&lt;b&gt;', '<b>', text, flags=re.IGNORECASE)
+    text = re.sub(r'&lt;/b&gt;', '</b>', text, flags=re.IGNORECASE)
+    text = re.sub(r'&lt;i&gt;', '<i>', text, flags=re.IGNORECASE)
+    text = re.sub(r'&lt;/i&gt;', '</i>', text, flags=re.IGNORECASE)
+    return text.strip()
 
 def generate_pdf(filtered_df, ai_summary, date_range=None):
     buf = BytesIO()
@@ -233,9 +253,8 @@ def generate_pdf(filtered_df, ai_summary, date_range=None):
     clean = ai_summary.replace('*','').replace('#','')
     for line in clean.split('\n'):
         if line.strip():
-            story.append(Paragraph(line.strip(), styles['Normal']))
-            story.append(Spacer(1,5))
-
+            story.append(Paragraph(clean_for_pdf(line.strip()), styles['Normal']))
+            story.append(Spacer(1, 5))
     doc.build(story)
     buf.seek(0)
     return buf
@@ -693,7 +712,7 @@ if not df.empty:
     # ============================================================
     with tab4:
 
-        st.subheader("🧠 AI Insights (Groq LLaMA 3.3 70B)")
+        st.subheader("🧠 AI Insights (Groq GPT-OSS 120B)")
 
         if not filtered_df.empty:
 
