@@ -17,6 +17,7 @@ from reportlab.lib.units import inch
 import datetime
 from sklearn.ensemble import IsolationForest
 import time
+import json
 import uuid
 import re
 from xml.sax.saxutils import escape
@@ -125,9 +126,87 @@ def ask_ai_with_history(messages: list) -> str:
 def get_confidence(df_proc):
     try:
         proba = model.predict_proba(df_proc)
-        return (proba.max(axis=1)*100).round(2), model.classes_, proba
+        return (proba.max(axis=1) * 100).round(2), model.classes_, proba
     except:
         return None, None, None
+
+
+def show_model_performance():
+    """Display trained model performance metrics and confusion matrix."""
+
+    st.markdown("### 📈 Model Performance")
+
+    metrics_path = "model/model_metrics.json"
+    matrix_path = "model/confusion_matrix.png"
+
+    # Load and display model metrics
+    if os.path.exists(metrics_path):
+        try:
+            with open(metrics_path, "r") as f:
+                metrics = json.load(f)
+
+            col1, col2, col3, col4 = st.columns(4)
+
+            accuracy = metrics.get("accuracy")
+            precision = metrics.get("precision")
+            recall = metrics.get("recall")
+            f1 = metrics.get("f1_score", metrics.get("f1"))
+
+            if accuracy is not None:
+                col1.metric(
+                    "🎯 Accuracy",
+                    f"{float(accuracy) * 100:.2f}%"
+                    if float(accuracy) <= 1
+                    else f"{float(accuracy):.2f}%"
+                )
+
+            if precision is not None:
+                col2.metric(
+                    "🔹 Precision",
+                    f"{float(precision) * 100:.2f}%"
+                    if float(precision) <= 1
+                    else f"{float(precision):.2f}%"
+                )
+
+            if recall is not None:
+                col3.metric(
+                    "🔹 Recall",
+                    f"{float(recall) * 100:.2f}%"
+                    if float(recall) <= 1
+                    else f"{float(recall):.2f}%"
+                )
+
+            if f1 is not None:
+                col4.metric(
+                    "⭐ F1 Score",
+                    f"{float(f1) * 100:.2f}%"
+                    if float(f1) <= 1
+                    else f"{float(f1):.2f}%"
+                )
+
+            with st.expander("📋 View Complete Model Metrics"):
+                st.json(metrics)
+
+        except Exception as e:
+            st.warning(f"⚠ Could not load model metrics: {e}")
+
+    else:
+        st.info("ℹ️ Model metrics file not found.")
+
+    # Display confusion matrix
+    if os.path.exists(matrix_path):
+        st.markdown("### 🔲 Confusion Matrix")
+
+        col1, col2, col3 = st.columns([1, 2, 1])
+
+        with col2:
+            st.image(
+                matrix_path,
+                caption="CatBoost Model Confusion Matrix",
+                use_container_width=True
+            )
+    else:
+        st.info("ℹ️ Confusion matrix image not found.")
 
 def clean_for_pdf(text: str) -> str:
     """Sanitize AI-generated text so reportlab's Paragraph parser doesn't choke
@@ -713,6 +792,7 @@ if not df.empty:
     with tab4:
 
         st.subheader("🧠 AI Insights (Groq GPT-OSS 120B)")
+        show_model_performance()
 
         if not filtered_df.empty:
 
