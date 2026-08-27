@@ -9,6 +9,7 @@ matplotlib
 seaborn
 openpyxl
 python-dotenv
+catboost
 
 firebase-admin
 
