@@ -89,8 +89,8 @@ groq_client  = Groq(api_key=GROQ_API_KEY)
 try:
     with open("model/model.pkl", "rb") as f:
         model = pickle.load(f)
-except:
-    st.error("⚠ Model not found. Please train the model first.")
+except Exception as e:
+    st.error(f"⚠ Model loading failed: {type(e).__name__}: {e}")
     st.stop()
 
 # ================================================================
