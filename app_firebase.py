@@ -523,16 +523,17 @@ if not df.empty:
     # ================================================================
     # TABS
     # ================================================================
-    tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8 = st.tabs([
-        "📊 Dashboard",
-        "🔍 Anomaly Detection",
-        "📄 Data Explorer",
-        "🤖 AI Insights",
-        "⚡ Manual Prediction",
-        "🔄 What-If Analysis",
-        "📜 Prediction History",
-        "💰 Business Impact & ROI"
-    ])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+    "📊 Dashboard",
+    "🔍 Anomaly Detection",
+    "📄 Data Explorer",
+    "🤖 AI Insights",
+    "⚡ Manual Prediction",
+    "🔄 What-If Analysis",
+    "📜 Prediction History",
+    "💰 Business Impact & ROI",
+    "🚦 DEPLOYMENT GATE"
+])
 
     cmap = {"HIGH":"#ff4d4d","MEDIUM":"#f1c40f","LOW":"#2ecc71"}
 
@@ -1119,154 +1120,546 @@ if not df.empty:
                         st.write(ask_ai(prompt))
 
     # ============================================================
+    # ============================================================
     # TAB 6 — WHAT-IF ANALYSIS
     # ============================================================
     with tab6:
 
         st.subheader("🔄 What-If Analysis")
-        st.caption("Compare two scenarios to measure impact of changes")
+        st.caption(
+            "Compare a current transport scenario with an improved scenario "
+            "using the SAME trained ML model."
+        )
 
         st.markdown("### 📌 Scenario A — Current State")
-        a1,a2 = st.columns(2)
+
+        a1, a2 = st.columns(2)
+
         with a1:
-            a_mod  = st.selectbox("Module (A)", ["FI","MM","SD","HR"],   key="am")
-            a_obj  = st.number_input("Objects (A)",  1,10,5,              key="ao")
-            a_lin  = st.number_input("Lines (A)",    1,500,200,           key="al")
-            a_con  = st.number_input("Conflicts (A)",0,5,3,               key="ac")
+            a_mod = st.selectbox(
+                "Module (A)", ["FI", "MM", "SD", "HR"], key="am"
+            )
+            a_obj = st.number_input(
+                "Objects Changed (A)", 1, 10, 5, key="ao"
+            )
+            a_lin = st.number_input(
+                "Lines Changed (A)", 1, 500, 200, key="al"
+            )
+            a_con = st.number_input(
+                "Conflicts (A)", 0, 5, 3, key="ac"
+            )
+
         with a2:
-            a_fail = st.number_input("Failures (A)", 0,5,2,               key="af")
-            a_stg  = st.selectbox("Stage (A)",
-                ["Development","Quality","Production"],                    key="as")
-            a_stat = st.selectbox("Status (A)",
-                ["Approved","Pending","Rejected"],                         key="ast")
+            a_fail = st.number_input(
+                "Historical Failures (A)", 0, 5, 2, key="af"
+            )
+            a_stg = st.selectbox(
+                "Stage (A)",
+                ["Development", "Quality", "Production"],
+                key="as"
+            )
+            a_stat = st.selectbox(
+                "Status (A)",
+                ["Approved", "Pending", "Rejected"],
+                key="ast"
+            )
 
         st.markdown("### 🎯 Scenario B — Improved State")
-        b1,b2 = st.columns(2)
-        with b1:
-            b_mod  = st.selectbox("Module (B)", ["FI","MM","SD","HR"],   key="bm")
-            b_obj  = st.number_input("Objects (B)",  1,10,2,              key="bo")
-            b_lin  = st.number_input("Lines (B)",    1,500,50,            key="bl")
-            b_con  = st.number_input("Conflicts (B)",0,5,0,               key="bc")
-        with b2:
-            b_fail = st.number_input("Failures (B)", 0,5,0,               key="bf")
-            b_stg  = st.selectbox("Stage (B)",
-                ["Development","Quality","Production"],                    key="bs")
-            b_stat = st.selectbox("Status (B)",
-                ["Approved","Pending","Rejected"],                         key="bst")
 
-        if st.button("🔄 Compare Scenarios"):
+        b1, b2 = st.columns(2)
+
+        with b1:
+            b_mod = st.selectbox(
+                "Module (B)", ["FI", "MM", "SD", "HR"], key="bm"
+            )
+            b_obj = st.number_input(
+                "Objects Changed (B)", 1, 10, 2, key="bo"
+            )
+            b_lin = st.number_input(
+                "Lines Changed (B)", 1, 500, 50, key="bl"
+            )
+            b_con = st.number_input(
+                "Conflicts (B)", 0, 5, 0, key="bc"
+            )
+
+        with b2:
+            b_fail = st.number_input(
+                "Historical Failures (B)", 0, 5, 0, key="bf"
+            )
+            b_stg = st.selectbox(
+                "Stage (B)",
+                ["Development", "Quality", "Production"],
+                key="bs"
+            )
+            b_stat = st.selectbox(
+                "Status (B)",
+                ["Approved", "Pending", "Rejected"],
+                key="bst"
+            )
+
+        if st.button("🔄 Compare Scenarios", key="compare_scenarios"):
 
             df_a = pd.DataFrame([{
-                "module":a_mod,"objects_changed":a_obj,"lines_changed":a_lin,
-                "conflicts":a_con,"history_failures":a_fail,
-                "transport_stage":a_stg,"change_request_status":a_stat
+                "module": a_mod,
+                "objects_changed": a_obj,
+                "lines_changed": a_lin,
+                "conflicts": a_con,
+                "history_failures": a_fail,
+                "transport_stage": a_stg,
+                "change_request_status": a_stat
             }])
+
             df_b = pd.DataFrame([{
-                "module":b_mod,"objects_changed":b_obj,"lines_changed":b_lin,
-                "conflicts":b_con,"history_failures":b_fail,
-                "transport_stage":b_stg,"change_request_status":b_stat
+                "module": b_mod,
+                "objects_changed": b_obj,
+                "lines_changed": b_lin,
+                "conflicts": b_con,
+                "history_failures": b_fail,
+                "transport_stage": b_stg,
+                "change_request_status": b_stat
             }])
 
-            pred_a = predict(model, preprocess(df_a.copy()))[0]
-            pred_b = predict(model, preprocess(df_b.copy()))[0]
+            try:
+                processed_a = preprocess(df_a.copy())
+                processed_b = preprocess(df_b.copy())
 
-            ca,_,_ = get_confidence(preprocess(df_a.copy()))
-            cb,_,_ = get_confidence(preprocess(df_b.copy()))
-            conf_a = round(float(ca[0]),2) if ca is not None else "N/A"
-            conf_b = round(float(cb[0]),2) if cb is not None else "N/A"
+                pred_a = predict(model, processed_a)[0]
+                pred_b = predict(model, processed_b)[0]
 
-            col1,col2 = st.columns(2)
+                ca, classes_a, proba_a = get_confidence(processed_a)
+                cb, classes_b, proba_b = get_confidence(processed_b)
+
+                conf_a = (
+                    round(float(ca[0]), 2)
+                    if ca is not None else "N/A"
+                )
+                conf_b = (
+                    round(float(cb[0]), 2)
+                    if cb is not None else "N/A"
+                )
+
+                # Store the complete comparison so it survives Streamlit reruns.
+                st.session_state.what_if_result = {
+                    "pred_a": pred_a,
+                    "pred_b": pred_b,
+                    "conf_a": conf_a,
+                    "conf_b": conf_b,
+                    "df_a": df_a,
+                    "df_b": df_b,
+                    "proba_a": proba_a,
+                    "proba_b": proba_b,
+                    "classes_a": classes_a,
+                    "classes_b": classes_b
+                }
+
+                # Clear old AI explanation when a new comparison is made.
+                st.session_state.what_if_ai = ""
+
+            except Exception as e:
+                st.error(
+                    f"❌ Could not compare the scenarios: "
+                    f"{type(e).__name__}: {e}"
+                )
+
+        # ------------------------------------------------------------
+        # DISPLAY LAST COMPARISON
+        # ------------------------------------------------------------
+        if "what_if_result" in st.session_state:
+
+            result = st.session_state.what_if_result
+
+            pred_a = result["pred_a"]
+            pred_b = result["pred_b"]
+            conf_a = result["conf_a"]
+            conf_b = result["conf_b"]
+
+            df_a = result["df_a"]
+            df_b = result["df_b"]
+
+            proba_a = result["proba_a"]
+            proba_b = result["proba_b"]
+            classes_a = result["classes_a"]
+            classes_b = result["classes_b"]
+
+            col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown("#### 📌 Scenario A")
-                rc_a = cmap.get(pred_a,"#aaa")
-                st.markdown(f"""
-                <div style='background:{rc_a};
-                     color:{"white" if pred_a=="HIGH" else "black"};
-                     padding:20px;border-radius:12px;text-align:center;
-                     font-size:1.5em;font-weight:bold'>
-                     {pred_a} RISK<br>
-                     <span style='font-size:0.6em'>
-                         Confidence: {conf_a}%
-                     </span>
-                </div>""", unsafe_allow_html=True)
-                pct_a = 90 if pred_a=="HIGH" else 60 if pred_a=="MEDIUM" else 30
-                st.markdown(risk_gauge(pct_a, rc_a), unsafe_allow_html=True)
+                st.markdown("#### 📌 Scenario A — Current")
+
+                rc_a = cmap.get(pred_a, "#aaa")
+
+                st.markdown(
+                    f"""
+                    <div style='background:{rc_a};
+                         color:{"white" if pred_a=="HIGH" else "black"};
+                         padding:22px;border-radius:14px;
+                         text-align:center;font-size:1.6em;
+                         font-weight:bold'>
+                        {pred_a} RISK<br>
+                        <span style='font-size:0.62em'>
+                            Model Confidence: {conf_a}%
+                        </span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                pct_a = (
+                    90 if pred_a == "HIGH"
+                    else 60 if pred_a == "MEDIUM"
+                    else 30
+                )
+
+                st.markdown(
+                    risk_gauge(pct_a, rc_a),
+                    unsafe_allow_html=True
+                )
 
             with col2:
-                st.markdown("#### 🎯 Scenario B")
-                rc_b = cmap.get(pred_b,"#aaa")
-                st.markdown(f"""
-                <div style='background:{rc_b};
-                     color:{"white" if pred_b=="HIGH" else "black"};
-                     padding:20px;border-radius:12px;text-align:center;
-                     font-size:1.5em;font-weight:bold'>
-                     {pred_b} RISK<br>
-                     <span style='font-size:0.6em'>
-                         Confidence: {conf_b}%
-                     </span>
-                </div>""", unsafe_allow_html=True)
-                pct_b = 90 if pred_b=="HIGH" else 60 if pred_b=="MEDIUM" else 30
-                st.markdown(risk_gauge(pct_b, rc_b), unsafe_allow_html=True)
+                st.markdown("#### 🎯 Scenario B — Improved")
 
-            # Delta
-            risk_order = {"HIGH":3,"MEDIUM":2,"LOW":1}
-            delta = risk_order.get(pred_a,2) - risk_order.get(pred_b,2)
-            if delta > 0:
-                st.success(
-                    f"✅ Risk REDUCED from {pred_a} → {pred_b} — Scenario B is safer!"
+                rc_b = cmap.get(pred_b, "#aaa")
+
+                st.markdown(
+                    f"""
+                    <div style='background:{rc_b};
+                         color:{"white" if pred_b=="HIGH" else "black"};
+                         padding:22px;border-radius:14px;
+                         text-align:center;font-size:1.6em;
+                         font-weight:bold'>
+                        {pred_b} RISK<br>
+                        <span style='font-size:0.62em'>
+                            Model Confidence: {conf_b}%
+                        </span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
-            elif delta < 0:
+
+                pct_b = (
+                    90 if pred_b == "HIGH"
+                    else 60 if pred_b == "MEDIUM"
+                    else 30
+                )
+
+                st.markdown(
+                    risk_gauge(pct_b, rc_b),
+                    unsafe_allow_html=True
+                )
+
+            # --------------------------------------------------------
+            # RISK COMPARISON BAR CHART
+            # --------------------------------------------------------
+            st.divider()
+            st.markdown("### 📊 Scenario Risk Comparison")
+
+            risk_score = {"LOW": 1, "MEDIUM": 2, "HIGH": 3}
+
+            score_a = risk_score.get(pred_a, 0)
+            score_b = risk_score.get(pred_b, 0)
+
+            comparison_df = pd.DataFrame({
+                "Scenario": ["Scenario A", "Scenario B"],
+                "Risk Score": [score_a, score_b],
+                "Risk Level": [pred_a, pred_b],
+                "Confidence %": [
+                    float(conf_a) if conf_a != "N/A" else 0,
+                    float(conf_b) if conf_b != "N/A" else 0
+                ]
+            })
+
+            fig_compare = px.bar(
+                comparison_df,
+                x="Scenario",
+                y="Risk Score",
+                text="Risk Level",
+                title="Risk Score Comparison  •  HIGH=3, MEDIUM=2, LOW=1",
+                range_y=[0, 3.4],
+                color="Risk Level",
+                color_discrete_map=cmap
+            )
+
+            fig_compare.update_traces(
+                textposition="outside"
+            )
+
+            fig_compare.update_layout(
+                yaxis_title="Risk Score",
+                xaxis_title="Scenario",
+                showlegend=True
+            )
+
+            st.plotly_chart(
+                fig_compare,
+                use_container_width=True
+            )
+
+            # --------------------------------------------------------
+            # FEATURE CHANGE CHART
+            # --------------------------------------------------------
+            st.markdown("### 📈 What Changed from A → B?")
+
+            feature_df = pd.DataFrame({
+                "Feature": [
+                    "Objects Changed",
+                    "Lines Changed",
+                    "Conflicts",
+                    "Historical Failures"
+                ],
+                "Scenario A": [
+                    a_obj, a_lin, a_con, a_fail
+                ],
+                "Scenario B": [
+                    b_obj, b_lin, b_con, b_fail
+                ]
+            })
+
+            feature_long = feature_df.melt(
+                id_vars="Feature",
+                var_name="Scenario",
+                value_name="Value"
+            )
+
+            fig_features = px.bar(
+                feature_long,
+                x="Feature",
+                y="Value",
+                color="Scenario",
+                barmode="group",
+                text="Value",
+                title="Input Feature Comparison"
+            )
+
+            fig_features.update_traces(
+                textposition="outside"
+            )
+
+            st.plotly_chart(
+                fig_features,
+                use_container_width=True
+            )
+
+            # --------------------------------------------------------
+            # DETAILED NUMERIC DELTA
+            # --------------------------------------------------------
+            delta_rows = []
+
+            for label, a_val, b_val in [
+                ("Objects Changed", a_obj, b_obj),
+                ("Lines Changed", a_lin, b_lin),
+                ("Conflicts", a_con, b_con),
+                ("Historical Failures", a_fail, b_fail)
+            ]:
+                delta_rows.append({
+                    "Feature": label,
+                    "Scenario A": a_val,
+                    "Scenario B": b_val,
+                    "Change (B-A)": b_val - a_val
+                })
+
+            delta_df = pd.DataFrame(delta_rows)
+
+            st.dataframe(
+                delta_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+            # --------------------------------------------------------
+            # DECISION SUMMARY
+            # --------------------------------------------------------
+            delta_risk = score_a - score_b
+
+            if delta_risk > 0:
+                st.success(
+                    f"✅ Risk REDUCED from **{pred_a} → {pred_b}**. "
+                    "Scenario B is safer according to the trained model."
+                )
+            elif delta_risk < 0:
                 st.error(
-                    f"⚠ Risk INCREASED from {pred_a} → {pred_b} — Scenario A was safer!"
+                    f"⚠ Risk INCREASED from **{pred_a} → {pred_b}**. "
+                    "Scenario A is safer according to the trained model."
                 )
             else:
-                st.info(f"➡ Risk unchanged — both predict {pred_a}")
+                st.info(
+                    f"➡ Risk level is unchanged: both scenarios predict "
+                    f"**{pred_a}**."
+                )
 
-            # Comparison Chart
-            st.divider()
-            comp_df = pd.DataFrame({
-                'Parameter':  ['Objects','Lines','Conflicts','Failures'],
-                'Scenario A': [a_obj, a_lin, a_con, a_fail],
-                'Scenario B': [b_obj, b_lin, b_con, b_fail]
-            })
-            fig_cmp = px.bar(
-                comp_df.melt(
-                    id_vars='Parameter',
-                    var_name='Scenario',
-                    value_name='Value'
-                ),
-                x='Parameter', y='Value', color='Scenario',
-                barmode='group', title="Parameter Comparison A vs B",
-                color_discrete_map={
-                    "Scenario A":"#ff4d4d","Scenario B":"#2ecc71"
-                }
-            )
-            st.plotly_chart(fig_cmp, use_container_width=True)
+            # --------------------------------------------------------
+            # WHY SCENARIO B IS SAFER
+            # --------------------------------------------------------
+            st.markdown("### 🧠 Why Is Scenario B Safer?")
 
-            # AI Explanation
-            with st.spinner("AI comparing scenarios..."):
-                prompt = f"""
-                Compare two SAP transport scenarios:
+            if delta_risk > 0:
+                reasons = []
 
-                Scenario A: Module={a_mod}, Objects={a_obj}, Lines={a_lin},
-                Conflicts={a_con}, Failures={a_fail},
-                Stage={a_stg}, Status={a_stat}
-                → Predicted: {pred_a} ({conf_a}% confidence)
+                if b_obj < a_obj:
+                    reasons.append(
+                        f"Objects changed decreased from **{a_obj} → {b_obj}**."
+                    )
 
-                Scenario B: Module={b_mod}, Objects={b_obj}, Lines={b_lin},
-                Conflicts={b_con}, Failures={b_fail},
-                Stage={b_stg}, Status={b_stat}
-                → Predicted: {pred_b} ({conf_b}% confidence)
+                if b_lin < a_lin:
+                    reasons.append(
+                        f"Lines changed decreased from **{a_lin} → {b_lin}**."
+                    )
 
-                1. Why did risk change (or stay same)?
-                2. Which parameter had most impact?
-                3. Is Scenario B safe to deploy?
-                4. Further improvements?
-                """
-                st.write(ask_ai(prompt))
+                if b_con < a_con:
+                    reasons.append(
+                        f"Conflicts decreased from **{a_con} → {b_con}**."
+                    )
 
-    # ============================================================
+                if b_fail < a_fail:
+                    reasons.append(
+                        f"Historical failures decreased from "
+                        f"**{a_fail} → {b_fail}**."
+                    )
+
+                if a_stg != b_stg:
+                    reasons.append(
+                        f"Transport stage changed from **{a_stg} → {b_stg}**."
+                    )
+
+                if a_stat != b_stat:
+                    reasons.append(
+                        f"Change-request status changed from "
+                        f"**{a_stat} → {b_stat}**."
+                    )
+
+                if reasons:
+                    for reason in reasons:
+                        st.markdown(f"• {reason}")
+                else:
+                    st.markdown(
+                        "• The input values shown are unchanged, but the "
+                        "model produced a lower risk for Scenario B."
+                    )
+
+                st.caption(
+                    "These are model-based indicators, not proof of causality. "
+                    "The final risk decision should be validated in the actual "
+                    "SAP landscape."
+                )
+
+            elif delta_risk == 0:
+                st.info(
+                    "Scenario B is not safer because the model assigned the "
+                    "same risk level to both scenarios. Review the feature "
+                    "changes and model confidence."
+                )
+
+            else:
+                st.warning(
+                    "Scenario B is not safer according to the model. "
+                    "Review the changes before deployment."
+                )
+
+            # --------------------------------------------------------
+            # AI EXPLANATION
+            # --------------------------------------------------------
+            st.markdown("### 🤖 AI Explanation — Scenario Comparison")
+
+            if st.button(
+                "🧠 Explain Why Scenario B Is Safer",
+                key="what_if_ai_button"
+            ):
+                ai_prompt = f"""
+You are an SAP Basis and transport-risk analyst.
+
+Compare these two scenarios using the ML model result.
+
+SCENARIO A — CURRENT
+Module: {a_mod}
+Objects Changed: {a_obj}
+Lines Changed: {a_lin}
+Conflicts: {a_con}
+Historical Failures: {a_fail}
+Stage: {a_stg}
+Status: {a_stat}
+Predicted Risk: {pred_a}
+Model Confidence: {conf_a}%
+
+SCENARIO B — IMPROVED
+Module: {b_mod}
+Objects Changed: {b_obj}
+Lines Changed: {b_lin}
+Conflicts: {b_con}
+Historical Failures: {b_fail}
+Stage: {b_stg}
+Status: {b_stat}
+Predicted Risk: {pred_b}
+Model Confidence: {conf_b}%
+
+Explain:
+1. Whether Scenario B is safer according to the model.
+2. Exactly which input changes distinguish B from A.
+3. Which changes are the strongest practical risk-reduction signals.
+4. Why the model's predicted risk changed or stayed the same.
+5. What should be validated before a Production deployment.
+
+Do not claim that one feature caused the prediction unless the model evidence
+supports that conclusion. Keep the explanation professional and concise.
+"""
+
+                with st.spinner("🤖 AI explaining the scenario difference..."):
+                    st.session_state.what_if_ai = ask_ai(ai_prompt)
+
+            if st.session_state.get("what_if_ai"):
+                st.info(st.session_state.what_if_ai)
+
+            # --------------------------------------------------------
+            # PROBABILITY BREAKDOWN
+            # --------------------------------------------------------
+            if (
+                proba_a is not None
+                and proba_b is not None
+                and classes_a is not None
+                and classes_b is not None
+            ):
+                st.markdown("### 🎯 Model Probability Breakdown")
+
+                prob_a = pd.DataFrame({
+                    "Risk Level": classes_a,
+                    "Scenario A": (proba_a[0] * 100).round(2)
+                })
+
+                prob_b = pd.DataFrame({
+                    "Risk Level": classes_b,
+                    "Scenario B": (proba_b[0] * 100).round(2)
+                })
+
+                prob_df = pd.merge(
+                    prob_a,
+                    prob_b,
+                    on="Risk Level",
+                    how="outer"
+                ).fillna(0)
+
+                prob_long = prob_df.melt(
+                    id_vars="Risk Level",
+                    var_name="Scenario",
+                    value_name="Probability %"
+                )
+
+                fig_prob = px.bar(
+                    prob_long,
+                    x="Risk Level",
+                    y="Probability %",
+                    color="Scenario",
+                    barmode="group",
+                    text="Probability %",
+                    title="Model Confidence Distribution"
+                )
+
+                fig_prob.update_traces(
+                    texttemplate="%{text:.1f}%",
+                    textposition="outside"
+                )
+
+                st.plotly_chart(
+                    fig_prob,
+                    use_container_width=True
+                )
     # TAB 7 — PREDICTION HISTORY (FIREBASE)
     # ============================================================
     with tab7:
@@ -1703,9 +2096,1100 @@ if not df.empty:
                 file_name="sap_business_impact_report.pdf",
                 mime="application/pdf"
             )
+    # ============================================================
+    # TAB 9 — WHOLE-DATASET DEPLOYMENT DECISION GATE
+    # ============================================================
+    with tab9:
+
+        st.markdown("""
+        <div style='background:linear-gradient(135deg,#0f0c29,#302b63);
+             padding:25px;border-radius:15px;margin-bottom:20px;
+             border:1px solid #764ba2'>
+            <h2 style='color:white;margin:0'>
+                🚦 AI Deployment Decision Gate
+            </h2>
+            <p style='color:#b39ddb;margin-top:8px'>
+                Whole-dataset risk assessment for deployment readiness
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.info(
+            "🔒 This gate evaluates the complete loaded dataset "
+            "and is independent of the sidebar filters."
+        )
+
+        # --------------------------------------------------------
+        # WHOLE DATASET
+        # --------------------------------------------------------
+
+        gate_df = df_original.copy()
+
+        gate_total = len(gate_df)
+
+        gate_high = (
+            gate_df["Predicted Risk"] == "HIGH"
+        ).sum()
+
+        gate_medium = (
+            gate_df["Predicted Risk"] == "MEDIUM"
+        ).sum()
+
+        gate_low = (
+            gate_df["Predicted Risk"] == "LOW"
+        ).sum()
+
+        gate_high_pct = (
+            gate_high / gate_total * 100
+            if gate_total > 0 else 0
+        )
+
+        # --------------------------------------------------------
+        # PRODUCTION HIGH-RISK TRANSPORTS
+        # --------------------------------------------------------
+
+        gate_production_high = gate_df[
+            (gate_df["transport_stage"] == "Production") &
+            (gate_df["Predicted Risk"] == "HIGH")
+        ]
+
+        production_high_count = len(gate_production_high)
+
+        production_count = (
+            gate_df["transport_stage"] == "Production"
+        ).sum()
+
+        production_high_pct = (
+            production_high_count / production_count * 100
+            if production_count > 0 else 0
+        )
+
+        # --------------------------------------------------------
+        # CONFLICT / FAILURE SIGNALS
+        # --------------------------------------------------------
+
+        conflict_count = (
+            gate_df["conflicts"] > 0
+        ).sum()
+
+        failure_count = (
+            gate_df["history_failures"] > 0
+        ).sum()
+
+        anomaly_count = (
+            gate_df["Anomaly"] == "⚠ Anomaly"
+        ).sum() if "Anomaly" in gate_df.columns else 0
+
+        # --------------------------------------------------------
+        # RISK CONCENTRATION
+        # --------------------------------------------------------
+
+        if gate_total > 0:
+
+            high_risk_rate = gate_high / gate_total
+
+            critical_rate = (
+                production_high_count / gate_total
+            )
+
+        else:
+
+            high_risk_rate = 0
+            critical_rate = 0
+
+        # --------------------------------------------------------
+        # DEPLOYMENT POLICY
+        #
+        # Demo policy:
+        #
+        # NO-GO:
+        #   Production HIGH risk exists
+        #   OR whole dataset HIGH risk >= 20%
+        #
+        # CONDITIONAL GO:
+        #   HIGH risk exists but critical production
+        #   exposure is limited
+        #
+        # GO:
+        #   No HIGH risk and no critical production exposure
+        # --------------------------------------------------------
+
+        if production_high_count > 0 or high_risk_rate >= 0.20:
+
+            gate_decision = "NO-GO"
+            gate_color = "#e74c3c"
+            gate_icon = "🛑"
+
+            gate_reason = (
+                "High-risk deployment exposure detected. "
+                "Production deployment should be blocked "
+                "until remediation and validation are completed."
+            )
+
+        elif gate_high > 0:
+
+            gate_decision = "CONDITIONAL GO"
+            gate_color = "#f1c40f"
+            gate_icon = "⚠️"
+
+            gate_reason = (
+                "High-risk transports exist in the dataset, "
+                "but no HIGH-risk Production transport was detected. "
+                "Additional validation is recommended before deployment."
+            )
+
+        else:
+
+            gate_decision = "GO"
+            gate_color = "#2ecc71"
+            gate_icon = "✅"
+
+            gate_reason = (
+                "No HIGH-risk transports were detected. "
+                "Dataset is currently within the configured "
+                "deployment risk policy."
+            )
+
+# --------------------------------------------------------
+# MAIN DECISION CARD
+# --------------------------------------------------------
+
+        st.markdown("### 🎯 Deployment Decision")
+
+        decision_card_html = f"""
+        <div style="
+            background:#1a1a2e;
+            border:3px solid {gate_color};
+            border-radius:18px;
+            padding:30px;
+            text-align:center;
+            margin:15px 0 25px 0;
+        ">
+
+            <div style="font-size:3em; margin-bottom:10px;">
+                {gate_icon}
+            </div>
+
+            <div style="
+                font-size:2.5em;
+                font-weight:bold;
+                color:{gate_color};
+                margin:10px 0;
+            ">
+                {gate_decision}
+            </div>
+
+            <div style="
+                color:#ddd;
+                font-size:1.05em;
+                max-width:850px;
+                margin:auto;
+                line-height:1.6;
+            ">
+                {gate_reason}
+            </div>
+
+        </div>
+        """
+
+        st.html(decision_card_html)
+        # --------------------------------------------------------
+        # EXECUTIVE KPIs
+        # --------------------------------------------------------
+
+        g1,g2,g3,g4,g5 = st.columns(5)
+
+        g1.metric(
+            "📦 Total Transports",
+            f"{gate_total:,}"
+        )
+
+        g2.metric(
+            "🔴 HIGH Risk",
+            f"{gate_high:,}",
+            delta=f"{gate_high_pct:.1f}%"
+        )
+
+        g3.metric(
+            "🚨 Production HIGH",
+            f"{production_high_count:,}"
+        )
+
+        g4.metric(
+            "⚠️ Anomalies",
+            f"{anomaly_count:,}"
+        )
+
+        g5.metric(
+            "💥 Conflict Exposure",
+            f"{conflict_count:,}"
+        )
+
+        st.divider()
+
+        # --------------------------------------------------------
+        # RISK DISTRIBUTION
+        # --------------------------------------------------------
+
+        st.markdown("### 📊 Whole-Dataset Risk Profile")
+
+        risk_gate_df = pd.DataFrame({
+            "Risk Level": [
+                "HIGH",
+                "MEDIUM",
+                "LOW"
+            ],
+            "Transport Count": [
+                gate_high,
+                gate_medium,
+                gate_low
+            ]
+        })
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            fig_gate = px.bar(
+                risk_gate_df,
+                x="Risk Level",
+                y="Transport Count",
+                color="Risk Level",
+                title="Complete Dataset Risk Distribution",
+                color_discrete_map={
+                    "HIGH": "#ff4d4d",
+                    "MEDIUM": "#f1c40f",
+                    "LOW": "#2ecc71"
+                }
+            )
+
+            st.plotly_chart(
+                fig_gate,
+                use_container_width=True
+            )
+
+        with col2:
+
+            fig_gate_pie = px.pie(
+                risk_gate_df,
+                values="Transport Count",
+                names="Risk Level",
+                title="Risk Composition — Entire Dataset",
+                color="Risk Level",
+                color_discrete_map={
+                    "HIGH": "#ff4d4d",
+                    "MEDIUM": "#f1c40f",
+                    "LOW": "#2ecc71"
+                }
+            )
+
+            st.plotly_chart(
+                fig_gate_pie,
+                use_container_width=True
+            )
+
+        # --------------------------------------------------------
+        # DECISION RULES
+        # --------------------------------------------------------
+
+        st.divider()
+
+        st.markdown("### 🧠 Decision Gate Rules")
+
+        rule1 = (
+            "🔴 BLOCK"
+            if production_high_count > 0
+            else "🟢 PASS"
+        )
+
+        rule2 = (
+            "🔴 BLOCK"
+            if high_risk_rate >= 0.20
+            else "🟢 PASS"
+        )
+
+        rule3 = (
+            "⚠️ REVIEW"
+            if anomaly_count > 0
+            else "🟢 PASS"
+        )
+
+        rules_df = pd.DataFrame({
+            "Control": [
+                "Production HIGH-Risk Exposure",
+                "Overall HIGH-Risk Concentration",
+                "AI Anomaly Exposure"
+            ],
+            "Observed": [
+                f"{production_high_count} transports",
+                f"{gate_high} ({gate_high_pct:.1f}%)",
+                f"{anomaly_count} anomalies"
+            ],
+            "Gate Status": [
+                rule1,
+                rule2,
+                rule3
+            ]
+        })
+
+        st.dataframe(
+            rules_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        # --------------------------------------------------------
+        # TOP RISK MODULES
+        # --------------------------------------------------------
+
+        st.divider()
+
+        st.markdown("### 📦 Risk Concentration by Module")
+
+        module_gate = (
+            gate_df
+            .groupby("module")
+            .agg(
+                Total=("transport_id", "count"),
+                HIGH=("Predicted Risk",
+                      lambda x: (x == "HIGH").sum()),
+                MEDIUM=("Predicted Risk",
+                        lambda x: (x == "MEDIUM").sum()),
+                LOW=("Predicted Risk",
+                     lambda x: (x == "LOW").sum())
+            )
+            .reset_index()
+        )
+
+        module_gate["HIGH Risk %"] = (
+            module_gate["HIGH"] /
+            module_gate["Total"] * 100
+        ).round(1)
+
+        module_gate = module_gate.sort_values(
+            "HIGH Risk %",
+            ascending=False
+        )
+
+        st.dataframe(
+            module_gate,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        fig_module_gate = px.bar(
+            module_gate,
+            x="module",
+            y="HIGH Risk %",
+            title="HIGH-Risk Concentration by SAP Module",
+            text="HIGH Risk %"
+        )
+
+        fig_module_gate.update_traces(
+            texttemplate="%{text:.1f}%",
+            textposition="outside"
+        )
+
+        st.plotly_chart(
+            fig_module_gate,
+            use_container_width=True
+        )
+
+        # --------------------------------------------------------
+        # TOP NO-GO DRIVERS
+        # --------------------------------------------------------
+
+        st.divider()
+
+        st.markdown("### 🔥 Why Is the Gate Blocking Deployment?")
+
+        drivers = []
+
+        if production_high_count > 0:
+            drivers.append({
+                "Priority": "CRITICAL",
+                "Driver": "HIGH-risk Production transports",
+                "Impact": f"{production_high_count} transports"
+            })
+
+        if gate_high > 0:
+            drivers.append({
+                "Priority": "HIGH",
+                "Driver": "Overall HIGH-risk concentration",
+                "Impact": f"{gate_high_pct:.1f}% of dataset"
+            })
+
+        if conflict_count > 0:
+            drivers.append({
+                "Priority": "HIGH",
+                "Driver": "Transport conflicts detected",
+                "Impact": f"{conflict_count} transports"
+            })
+
+        if failure_count > 0:
+            drivers.append({
+                "Priority": "HIGH",
+                "Driver": "Historical transport failures",
+                "Impact": f"{failure_count} transports"
+            })
+
+        if anomaly_count > 0:
+            drivers.append({
+                "Priority": "MEDIUM",
+                "Driver": "AI-detected anomalous patterns",
+                "Impact": f"{anomaly_count} transports"
+            })
+
+        if not drivers:
+
+            st.success(
+                "✅ No major blocking risk drivers detected."
+            )
+
+        else:
+
+            drivers_df = pd.DataFrame(drivers)
+
+            st.dataframe(
+                drivers_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        # --------------------------------------------------------
+        # ACTION PLAN
+        # --------------------------------------------------------
+
+        st.divider()
+
+        st.markdown("### 🛠️ Recommended Action")
+
+        if gate_decision == "NO-GO":
+
+            st.error("""
+            ### 🛑 Deployment should be blocked
+
+            **Recommended sequence:**
+
+            1. Identify HIGH-risk Production transports.
+            2. Resolve conflicts and historical failure conditions.
+            3. Validate risky transports in Quality.
+            4. Re-run the ML risk assessment.
+            5. Re-check the Deployment Decision Gate.
+            6. Proceed only after the gate reaches an acceptable state.
+            """)
+
+        elif gate_decision == "CONDITIONAL GO":
+
+            st.warning("""
+            ### ⚠️ Conditional deployment
+
+            **Recommended sequence:**
+
+            1. Review all HIGH-risk transports.
+            2. Validate them in Quality.
+            3. Review detected anomalies.
+            4. Re-run the risk assessment.
+            5. Obtain deployment approval.
+            """)
+
+        else:
+
+            st.success("""
+            ### ✅ Deployment can proceed toward approval
+
+            No HIGH-risk transports were detected by the current
+            model and configured demo policy.
+
+            Continue with standard validation and organizational
+            approval procedures.
+            """)
+
+        # --------------------------------------------------------
+        # --------------------------------------------------------
+        # AI EXECUTIVE DECISION
+        # --------------------------------------------------------
+
+        st.divider()
+        st.markdown("### 🤖 AI Executive Decision Explanation")
+
+        if "gate_ai_explanation" not in st.session_state:
+            st.session_state.gate_ai_explanation = ""
+
+        if st.button(
+            "🧠 Explain Deployment Decision with AI",
+            key="ai_deployment_gate"
+        ):
+
+            gate_prompt = f"""
+You are an SAP transport risk decision analyst.
+
+Analyze the WHOLE DATASET assessment below.
+
+Total transports: {gate_total}
+HIGH risk: {gate_high} ({gate_high_pct:.1f}%)
+MEDIUM risk: {gate_medium}
+LOW risk: {gate_low}
+
+Production transports: {production_count}
+HIGH-risk Production transports: {production_high_count}
+
+Transports with conflicts: {conflict_count}
+Transports with historical failures: {failure_count}
+AI anomalies: {anomaly_count}
+
+Current deployment gate decision:
+{gate_decision}
+
+Explain clearly:
+
+1. Why the Deployment Decision Gate produced this decision.
+2. The most important risk drivers, ranked by severity.
+3. The business impact of proceeding without remediation.
+4. Which transports or risk conditions should be remediated first.
+5. What measurable conditions should be satisfied before deployment.
+6. Explain the decision in a concise executive summary.
+
+Do not invent facts that are not present in the data.
+Keep the response professional and suitable for a C-suite review.
+"""
+
+            with st.spinner(
+                "🤖 AI evaluating whole-dataset deployment readiness..."
+            ):
+                st.session_state.gate_ai_explanation = ask_ai(
+                    gate_prompt
+                )
+
+        if st.session_state.get("gate_ai_explanation"):
+            st.markdown("#### 📋 Executive AI Summary")
+            st.info(st.session_state.gate_ai_explanation)
+
+        # EXPORT GATE REPORT
+        # --------------------------------------------------------
+
+        st.divider()
+
+        gate_report_df = pd.DataFrame({
+            "Metric": [
+                "Deployment Decision",
+                "Total Transports",
+                "HIGH Risk",
+                "HIGH Risk %",
+                "MEDIUM Risk",
+                "LOW Risk",
+                "Production Transports",
+                "Production HIGH Risk",
+                "Conflicts",
+                "Historical Failures",
+                "AI Anomalies"
+            ],
+            "Value": [
+                gate_decision,
+                gate_total,
+                gate_high,
+                f"{gate_high_pct:.1f}%",
+                gate_medium,
+                gate_low,
+                production_count,
+                production_high_count,
+                conflict_count,
+                failure_count,
+                anomaly_count
+            ]
+        })
+
+        st.markdown("### 📥 Export Deployment Gate")
+
+        st.download_button(
+            "📥 Download Deployment Gate Report",
+            data=gate_report_df.to_csv(index=False),
+            file_name="sap_deployment_gate_report.csv",
+            mime="text/csv"
+        )
 
 
-    # ================================================================
+        # ------------------------------------------------------------
+        # AI REMEDIATION BASELINE
+        # Uses the highest-risk Production transport when available.
+        # ------------------------------------------------------------
+        if not gate_df.empty:
+            if not gate_production_high.empty:
+                optimizer_row = gate_production_high.iloc[0]
+            elif gate_high > 0:
+                optimizer_row = gate_df[gate_df["Predicted Risk"] == "HIGH"].iloc[0]
+            else:
+                optimizer_row = gate_df.iloc[0]
+
+            a_mod = optimizer_row["module"]
+            a_obj = int(optimizer_row["objects_changed"])
+            a_lin = int(optimizer_row["lines_changed"])
+            a_con = int(optimizer_row["conflicts"])
+            a_fail = int(optimizer_row["history_failures"])
+            a_stg = optimizer_row["transport_stage"]
+            a_stat = optimizer_row["change_request_status"]
+
+            optimizer_baseline = pd.DataFrame([{
+                "module": a_mod,
+                "objects_changed": a_obj,
+                "lines_changed": a_lin,
+                "conflicts": a_con,
+                "history_failures": a_fail,
+                "transport_stage": a_stg,
+                "change_request_status": a_stat
+            }])
+
+            try:
+                optimizer_processed = preprocess(optimizer_baseline.copy())
+                pred_a = predict(model, optimizer_processed)[0]
+            except Exception:
+                pred_a = optimizer_row.get("Predicted Risk", "HIGH")
+
+
+        # ============================================================
+        # 🔥 AI REMEDIATION OPTIMIZER
+        # ============================================================
+        st.divider()
+
+        st.markdown("### 🚀 AI Remediation Optimizer")
+
+        st.caption(
+            "Automatically tests practical remediation strategies "
+            "against the trained ML model and recommends the safest option."
+        )
+
+        if st.button("🧠 Find Best Remediation Strategy", key="remediation_optimizer"):
+
+            with st.spinner("🤖 Testing remediation strategies against the ML model..."):
+
+                # ========================================================
+                # 1. CURRENT SCENARIO A = BASELINE
+                # ========================================================
+
+                baseline = {
+                    "module": a_mod,
+                    "objects_changed": a_obj,
+                    "lines_changed": a_lin,
+                    "conflicts": a_con,
+                    "history_failures": a_fail,
+                    "transport_stage": a_stg,
+                    "change_request_status": a_stat
+                }
+
+                # ========================================================
+                # 2. CANDIDATE REMEDIATION STRATEGIES
+                # ========================================================
+
+                strategies = [
+
+                    (
+                        "Resolve conflicts",
+                        {
+                            "conflicts": 0
+                        }
+                    ),
+
+                    (
+                        "Resolve historical failures",
+                        {
+                            "history_failures": 0
+                        }
+                    ),
+
+                    (
+                        "Reduce objects changed",
+                        {
+                            "objects_changed": max(
+                                1,
+                                int(a_obj * 0.5)
+                            )
+                        }
+                    ),
+
+                    (
+                        "Reduce lines changed",
+                        {
+                            "lines_changed": max(
+                                1,
+                                int(a_lin * 0.5)
+                            )
+                        }
+                    ),
+
+                    (
+                        "Validate in Quality before Production",
+                        {
+                            "transport_stage": "Quality"
+                        }
+                    ),
+
+                    (
+                        "Resolve conflicts + failures",
+                        {
+                            "conflicts": 0,
+                            "history_failures": 0
+                        }
+                    ),
+
+                    (
+                        "Reduce changes + resolve conflicts",
+                        {
+                            "objects_changed": max(
+                                1,
+                                int(a_obj * 0.5)
+                            ),
+                            "lines_changed": max(
+                                1,
+                                int(a_lin * 0.5)
+                            ),
+                            "conflicts": 0
+                        }
+                    ),
+
+                    (
+                        "Full risk remediation",
+                        {
+                            "objects_changed": max(
+                                1,
+                                int(a_obj * 0.5)
+                            ),
+                            "lines_changed": max(
+                                1,
+                                int(a_lin * 0.5)
+                            ),
+                            "conflicts": 0,
+                            "history_failures": 0,
+                            "transport_stage": "Quality"
+                        }
+                    )
+                ]
+
+                # ========================================================
+                # 3. RISK SCORE
+                # ========================================================
+
+                risk_score = {
+                    "LOW": 1,
+                    "MEDIUM": 2,
+                    "HIGH": 3
+                }
+
+                results = []
+
+                # ========================================================
+                # 4. EVALUATE EVERY STRATEGY USING SAME ML MODEL
+                # ========================================================
+
+                for strategy_name, changes in strategies:
+
+                    candidate = baseline.copy()
+                    candidate.update(changes)
+
+                    candidate_df = pd.DataFrame([candidate])
+
+                    try:
+
+                        # ------------------------------------------------
+                        # Preprocess candidate
+                        # ------------------------------------------------
+
+                        processed = preprocess(
+                            candidate_df.copy()
+                        )
+
+                        # ------------------------------------------------
+                        # Predict risk
+                        # ------------------------------------------------
+
+                        candidate_pred = predict(
+                            model,
+                            processed
+                        )[0]
+
+                        # ------------------------------------------------
+                        # Get model confidence
+                        # ------------------------------------------------
+
+                        candidate_conf, _, _ = get_confidence(
+                            processed
+                        )
+
+                        if candidate_conf is not None:
+
+                            confidence_value = round(
+                                float(candidate_conf[0]),
+                                2
+                            )
+
+                        else:
+
+                            confidence_value = 0
+
+                        # ------------------------------------------------
+                        # Calculate risk score
+                        # ------------------------------------------------
+
+                        score = risk_score.get(
+                            candidate_pred,
+                            3
+                        )
+
+                        baseline_score = risk_score.get(
+                            pred_a,
+                            3
+                        )
+
+                        improvement = baseline_score - score
+
+                        # ------------------------------------------------
+                        # Store successful result
+                        # ------------------------------------------------
+
+                        results.append({
+                            "Strategy": strategy_name,
+                            "Predicted Risk": candidate_pred,
+                            "Confidence %": confidence_value,
+                            "Risk Score": score,
+                            "Improvement": improvement,
+                            "Error": ""
+                        })
+
+                    except Exception as e:
+
+                        # =================================================
+                        # IMPORTANT:
+                        # SHOW THE REAL ERROR INSTEAD OF HIDING IT
+                        # =================================================
+
+                        results.append({
+                            "Strategy": strategy_name,
+                            "Predicted Risk": "ERROR",
+                            "Confidence %": 0,
+                            "Risk Score": 99,
+                            "Improvement": -99,
+                            "Error": f"{type(e).__name__}: {str(e)}"
+                        })
+
+                # ========================================================
+                # 5. CREATE RESULTS DATAFRAME
+                # ========================================================
+
+                remediation_df = pd.DataFrame(results)
+
+                # ========================================================
+                # 6. SHOW DEBUG INFORMATION IF ANY STRATEGY FAILED
+                # ========================================================
+
+                error_rows = remediation_df[
+                    remediation_df["Predicted Risk"] == "ERROR"
+                ]
+
+                if not error_rows.empty:
+
+                    st.warning(
+                        "⚠ Some remediation strategies could not be evaluated."
+                    )
+
+                    with st.expander("🔧 Show Remediation Debug Information"):
+
+                        for _, error_row in error_rows.iterrows():
+
+                            st.error(
+                                f"❌ {error_row['Strategy']}\n\n"
+                                f"Error: {error_row['Error']}"
+                            )
+
+                # ========================================================
+                # 7. RANK RESULTS
+                # ========================================================
+
+                remediation_df = remediation_df.sort_values(
+                    by=[
+                        "Risk Score",
+                        "Confidence %"
+                    ],
+                    ascending=[
+                        True,
+                        False
+                    ]
+                ).reset_index(drop=True)
+
+                # ========================================================
+                # 8. CHECK WHETHER WE HAVE ANY SUCCESSFUL RESULT
+                # ========================================================
+
+                successful_results = remediation_df[
+                    remediation_df["Predicted Risk"] != "ERROR"
+                ]
+
+                if successful_results.empty:
+
+                    st.error(
+                        "❌ The model could not evaluate any remediation strategy."
+                    )
+
+                    st.info(
+                        "Open 'Show Remediation Debug Information' above "
+                        "to see the exact error."
+                    )
+
+                else:
+
+                    # ====================================================
+                    # 9. BEST RECOMMENDATION
+                    # ====================================================
+
+                    best = successful_results.iloc[0]
+
+                    st.markdown(
+                        "#### 🏆 Recommended Remediation"
+                    )
+
+                    # ====================================================
+                    # LOW RISK
+                    # ====================================================
+
+                    if best["Predicted Risk"] == "LOW":
+
+                        st.success(
+                            f"""
+        ### 🟢 LOW-RISK PATH FOUND
+
+        **Recommended action:**  
+        {best["Strategy"]}
+
+        **Predicted Risk:** LOW
+
+        **Model Confidence:** {best["Confidence %"]}%
+
+        **Risk Improvement:** {best["Improvement"]} level(s)
+        """
+                        )
+
+                    # ====================================================
+                    # MEDIUM RISK
+                    # ====================================================
+
+                    elif best["Predicted Risk"] == "MEDIUM":
+
+                        st.warning(
+                            f"""
+        ### 🟡 RISK CAN BE REDUCED
+
+        **Recommended action:**  
+        {best["Strategy"]}
+
+        **Predicted Risk:** MEDIUM
+
+        **Model Confidence:** {best["Confidence %"]}%
+
+        **Risk Improvement:** {best["Improvement"]} level(s)
+
+        Additional validation is recommended before production deployment.
+        """
+                        )
+
+                    # ====================================================
+                    # HIGH RISK
+                    # ====================================================
+
+                    else:
+
+                        st.error(
+                            f"""
+        ### 🔴 HIGH RISK REMAINS
+
+        **Best available action:**  
+        {best["Strategy"]}
+
+        **Predicted Risk:** HIGH
+
+        **Model Confidence:** {best["Confidence %"]}%
+
+        The tested remediation strategies did not reduce the transport below HIGH risk.
+        """
+                        )
+
+                    # ====================================================
+                    # 10. STRATEGY LEADERBOARD
+                    # ====================================================
+
+                    st.markdown(
+                        "#### 📊 Strategies Tested"
+                    )
+
+                    display_df = successful_results[
+                        [
+                            "Strategy",
+                            "Predicted Risk",
+                            "Confidence %",
+                            "Improvement"
+                        ]
+                    ]
+
+                    st.dataframe(
+                        display_df,
+                        use_container_width=True,
+                        hide_index=True
+                    )
+
+                    # ====================================================
+                    # 11. VISUAL COMPARISON
+                    # ====================================================
+
+                    chart_df = successful_results.copy()
+
+                    if not chart_df.empty:
+
+                        fig_rem = px.bar(
+                            chart_df,
+                            x="Strategy",
+                            y="Improvement",
+                            text="Predicted Risk",
+                            title="Risk Improvement by Remediation Strategy"
+                        )
+
+                        fig_rem.update_layout(
+                            xaxis_tickangle=-35,
+                            yaxis_title="Risk Level Improvement",
+                            xaxis_title="Remediation Strategy"
+                        )
+
+                        st.plotly_chart(
+                            fig_rem,
+                            use_container_width=True
+                        )
+
+                    # ====================================================
+                    # 12. DECISION RECOMMENDATION
+                    # ====================================================
+
+                    st.markdown(
+                        "#### 🎯 Decision"
+                    )
+
+                    if best["Predicted Risk"] == "LOW":
+
+                        st.success(
+                            "✅ Recommended: Apply the remediation, "
+                            "re-run validation, then proceed toward deployment."
+                        )
+
+                    elif best["Predicted Risk"] == "MEDIUM":
+
+                        st.warning(
+                            "⚠ Recommended: Apply the remediation and "
+                            "perform additional testing before production."
+                        )
+
+                    else:
+
+                        st.error(
+                            "🛑 Recommended: Do not deploy directly to "
+                            "Production. Further remediation is required."
+                        )
+
+                        # --------------------------------------------------------
     # EMPTY STATE
     # ================================================================
 else:
