@@ -1,4 +1,7 @@
 import streamlit as st
+import requests
+import firebase_admin
+from firebase_admin import credentials, firestore
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
@@ -35,12 +38,323 @@ from utils.firebase_helper import (
     fetch_chat_history,
     clear_collection
 )
+# ---------------- FIREBASE AUTHENTICATION ----------------
+
+def firebase_auth_url(action):
+    api_key = os.getenv("FIREBASE_WEB_API_KEY")
+
+    if not api_key:
+        raise ValueError("FIREBASE_WEB_API_KEY is not configured.")
+
+    return f"https://identitytoolkit.googleapis.com/v1/accounts:{action}?key={api_key}"
+
+
+def sign_up(email, password):
+    url = firebase_auth_url("signUp")
+
+    response = requests.post(
+        url,
+        json={
+            "email": email,
+            "password": password,
+            "returnSecureToken": True
+        },
+        timeout=15
+    )
+
+    data = response.json()
+
+    if response.ok:
+        return True, data
+
+    return False, data.get("error", {}).get(
+        "message",
+        "Sign-up failed."
+    )
+
+
+def sign_in(email, password):
+    url = firebase_auth_url("signInWithPassword")
+
+    response = requests.post(
+        url,
+        json={
+            "email": email,
+            "password": password,
+            "returnSecureToken": True
+        },
+        timeout=15
+    )
+
+    data = response.json()
+
+    if response.ok:
+        return True, data
+
+    return False, data.get("error", {}).get(
+        "message",
+        "Sign-in failed."
+    )
+
+
+def logout():
+    st.session_state.authenticated = False
+    st.session_state.user_email = None
+    st.session_state.id_token = None
+    st.session_state.refresh_token = None
+    st.rerun()
 
 # ================================================================
 # CONFIG
 # ================================================================
 load_dotenv()
 st.set_page_config(page_title="SAP Risk AI", layout="wide", page_icon="🚀")
+
+# ---------------- AUTH SESSION ----------------
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if "user_email" not in st.session_state:
+    st.session_state.user_email = None
+
+if "id_token" not in st.session_state:
+    st.session_state.id_token = None
+
+if "refresh_token" not in st.session_state:
+    st.session_state.refresh_token = None
+# ================================================================
+# AUTHENTICATION GATE
+# ================================================================
+
+if not st.session_state.authenticated:
+
+    st.markdown(
+        """
+        <div style="
+            text-align:center;
+            padding:40px 0 20px 0;
+        ">
+            <h1>🚀 SAP Risk AI</h1>
+            <p style="font-size:18px; opacity:0.75;">
+                SAP Transport Risk Decision Intelligence Platform
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    auth_tab1, auth_tab2 = st.tabs(["🔐 Sign In", "🆕 Create Account"])
+
+    # ---------------- SIGN IN ----------------
+    with auth_tab1:
+
+        st.subheader("Welcome back")
+
+        login_email = st.text_input(
+            "Email",
+            placeholder="Enter your email",
+            key="login_email"
+        )
+
+        login_password = st.text_input(
+            "Password",
+            type="password",
+            placeholder="Enter your password",
+            key="login_password"
+        )
+
+        if st.button(
+            "🔓 Sign In",
+            type="primary",
+            use_container_width=True
+        ):
+
+            if not login_email or not login_password:
+                st.error("Please enter both email and password.")
+
+            else:
+                with st.spinner("Signing in..."):
+
+                    success, result = sign_in(
+                        login_email,
+                        login_password
+                    )
+
+                if success:
+
+                    st.session_state.authenticated = True
+                    st.session_state.user_email = result.get(
+                        "email",
+                        login_email
+                    )
+                    st.session_state.id_token = result.get(
+                        "idToken"
+                    )
+                    st.session_state.refresh_token = result.get(
+                        "refreshToken"
+                    )
+
+                    st.success("Login successful!")
+                    st.rerun()
+
+                else:
+
+                    error_code = result
+
+                    error_messages = {
+                        "EMAIL_NOT_FOUND":
+                            "No account exists with this email.",
+                        "INVALID_PASSWORD":
+                            "Incorrect password.",
+                        "INVALID_LOGIN_CREDENTIALS":
+                            "Invalid email or password.",
+                        "USER_DISABLED":
+                            "This account has been disabled.",
+                        "TOO_MANY_ATTEMPTS_TRY_LATER":
+                            "Too many attempts. Please try again later.",
+                    }
+
+                    st.error(
+                        error_messages.get(
+                            error_code,
+                            f"Sign-in failed: {error_code}"
+                        )
+                    )
+
+    # ---------------- SIGN UP ----------------
+    with auth_tab2:
+
+        st.subheader("Create your account")
+
+        signup_email = st.text_input(
+            "Email",
+            placeholder="Enter your email",
+            key="signup_email"
+        )
+
+        signup_password = st.text_input(
+            "Password",
+            type="password",
+            placeholder="Create a password",
+            key="signup_password"
+        )
+
+        signup_confirm = st.text_input(
+            "Confirm Password",
+            type="password",
+            placeholder="Re-enter your password",
+            key="signup_confirm"
+        )
+
+        if st.button(
+            "🆕 Create Account",
+            type="primary",
+            use_container_width=True
+        ):
+
+            if not signup_email or not signup_password:
+                st.error(
+                    "Please enter your email and password."
+                )
+
+            elif signup_password != signup_confirm:
+                st.error("Passwords do not match.")
+
+            elif len(signup_password) < 6:
+                st.error(
+                    "Password must contain at least 6 characters."
+                )
+
+            else:
+
+                with st.spinner("Creating your account..."):
+
+                    success, result = sign_up(
+                        signup_email,
+                        signup_password
+                    )
+
+                if success:
+
+                    st.success(
+                        "Account created successfully! "
+                        "Please go to Sign In and log in."
+                    )
+
+                else:
+
+                    error_code = result
+
+                    error_messages = {
+                        "EMAIL_EXISTS":
+                            "An account with this email already exists.",
+                        "INVALID_EMAIL":
+                            "Please enter a valid email address.",
+                        "WEAK_PASSWORD":
+                            "Password is too weak.",
+                    }
+
+                    st.error(
+                        error_messages.get(
+                            error_code,
+                            f"Sign-up failed: {error_code}"
+                        )
+                    )
+
+    # Don't load the SAP application until authenticated
+    st.stop()
+# ============================================================
+# USER PROFILE / LOGOUT BAR
+# ============================================================
+# Top-right authenticated user area.
+# Email/password Firebase authentication does not provide a Google
+# profile photo, so the avatar is represented by the first letter.
+# ============================================================
+
+profile_spacer, profile_user, profile_action = st.columns([7, 2.5, 1.1])
+
+with profile_user:
+    user_email = st.session_state.get("user_email") or "User"
+    avatar_letter = user_email[0].upper() if user_email else "U"
+
+    avatar_col, email_col = st.columns([0.65, 2.35])
+
+    with avatar_col:
+        st.markdown(
+            f"""
+            <div style="
+                width:42px;
+                height:42px;
+                border-radius:50%;
+                background:linear-gradient(135deg,#4285F4,#34A853);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                color:white;
+                font-weight:700;
+                font-size:18px;
+                margin-top:2px;
+                box-shadow:0 2px 8px rgba(0,0,0,0.25);
+            ">{avatar_letter}</div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with email_col:
+        st.write(user_email)
+
+with profile_action:
+    if st.button(
+        "🚪 Logout",
+        key="top_logout",
+        width="stretch",
+        help="Sign out of SAP Risk AI"
+    ):
+        logout()
+
+st.divider()
+
 
 # Session ID for chat persistence
 if 'session_id' not in st.session_state:
