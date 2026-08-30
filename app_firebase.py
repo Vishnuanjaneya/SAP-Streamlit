@@ -523,7 +523,7 @@ if not df.empty:
     # ================================================================
     # TABS
     # ================================================================
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
     "🔍 Anomaly Detection",
     "📄 Data Explorer",
@@ -532,7 +532,8 @@ if not df.empty:
     "🔄 What-If Analysis",
     "📜 Prediction History",
     "💰 Business Impact & ROI",
-    "🚦 DEPLOYMENT GATE"
+    "🚦 Deployment Gate",
+    "🚀 AI Release Commander"
 ])
 
     cmap = {"HIGH":"#ff4d4d","MEDIUM":"#f1c40f","LOW":"#2ecc71"}
@@ -3188,7 +3189,294 @@ Keep the response professional and suitable for a C-suite review.
                             "🛑 Recommended: Do not deploy directly to "
                             "Production. Further remediation is required."
                         )
+                            # ============================================================
+    # TAB 10 — AI RELEASE COMMANDER
+    # ============================================================
+    with tab10:
 
+        st.markdown("## 🚀 AI Release Commander")
+
+        st.caption(
+            "Executive release-readiness assessment combining "
+            "deployment risk, remediation status, and what-if analysis."
+        )
+
+        # --------------------------------------------------------
+        # RELEASE READINESS
+        # --------------------------------------------------------
+        release_blockers = []
+
+        if production_high_count > 0:
+            release_blockers.append(
+                f"{production_high_count:,} HIGH-risk Production transports"
+            )
+
+        if gate_high_pct >= 50:
+            release_blockers.append(
+                f"HIGH-risk concentration is {gate_high_pct:.1f}%"
+            )
+
+        if conflict_count > 0:
+            release_blockers.append(
+                f"{conflict_count:,} transport conflicts"
+            )
+
+        if failure_count > 0:
+            release_blockers.append(
+                f"{failure_count:,} historical failures"
+            )
+
+        # AI anomalies are monitored separately.
+        # They are NOT automatic release blockers because
+        # Isolation Forest intentionally flags unusual patterns.
+        release_ready = len(release_blockers) == 0
+
+        if release_ready:
+
+            st.success(
+                "🟢 RELEASE READY — No critical deployment blockers detected."
+            )
+
+        else:
+
+            st.error(
+                "🔴 RELEASE BLOCKED — Critical risk conditions require remediation."
+            )
+
+        # --------------------------------------------------------
+        # RELEASE SCORE
+        # --------------------------------------------------------
+        risk_penalty = 0
+
+        risk_penalty += min(gate_high_pct * 0.5, 40)
+
+        if production_high_count > 0:
+            risk_penalty += min(
+                production_high_count / max(gate_total, 1) * 100,
+                25
+            )
+
+        if conflict_count > 0:
+            risk_penalty += min(
+                conflict_count / max(gate_total, 1) * 100,
+                15
+            )
+
+        if anomaly_count > 0:
+            risk_penalty += min(
+                anomaly_count / max(gate_total, 1) * 100,
+                10
+            )
+
+        release_score = max(
+            0,
+            min(100, 100 - risk_penalty)
+        )
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.metric(
+                "Release Readiness",
+                f"{release_score:.0f}/100"
+            )
+
+        with c2:
+            st.metric(
+                "Deployment Decision",
+                gate_decision
+            )
+
+        with c3:
+            st.metric(
+                "Critical Blockers",
+                len(release_blockers)
+            )
+
+        # --------------------------------------------------------
+        # BLOCKERS
+        # --------------------------------------------------------
+        st.markdown("### 🚨 Release Blockers")
+
+        if release_blockers:
+
+            for i, blocker in enumerate(
+                release_blockers,
+                start=1
+            ):
+                st.warning(
+                    f"**{i}.** {blocker}"
+                )
+
+        else:
+
+            st.success(
+                "No release blockers detected."
+            )
+
+        # --------------------------------------------------------
+        # COMMANDER RECOMMENDATION
+        # --------------------------------------------------------
+        st.markdown("### 🧭 Commander Recommendation")
+
+        if production_high_count > 0:
+
+            st.error(
+                "🛑 DO NOT RELEASE\n\n"
+                "High-risk Production transports are still present. "
+                "Remediate and validate them before production deployment."
+            )
+
+        elif gate_high_pct >= 50:
+
+            st.error(
+                "🛑 HOLD RELEASE\n\n"
+                "The overall HIGH-risk concentration remains too high "
+                "for a safe production release."
+            )
+
+        elif conflict_count > 0:
+
+            st.warning(
+                "⚠️ REVIEW BEFORE RELEASE\n\n"
+                "Transport conflicts must be investigated and resolved."
+            )
+
+        else:
+
+            st.success(
+                "✅ RELEASE CAN PROCEED\n\n"
+                "The current dataset does not contain critical deployment blockers."
+            )
+
+        # --------------------------------------------------------
+        # EXECUTIVE SUMMARY
+        # --------------------------------------------------------
+        st.markdown("### 🧠 AI Executive Summary")
+
+        summary = f"""
+**Deployment Decision:** {gate_decision}
+
+**Dataset:** {gate_total:,} transports
+
+**HIGH Risk:** {gate_high:,} ({gate_high_pct:.1f}%)
+
+**Production HIGH Risk:** {production_high_count:,}
+
+**Conflicts:** {conflict_count:,}
+
+**Historical Failures:** {failure_count:,}
+
+**AI Anomalies:** {anomaly_count:,}
+
+The current release assessment indicates that the deployment
+should {'not proceed until the identified risks are remediated' if not release_ready else 'proceed subject to normal release controls'}.
+"""
+
+        st.info(summary)
+
+        # --------------------------------------------------------
+        # RELEASE CHECKLIST
+        # --------------------------------------------------------
+        st.markdown("### ✅ Release Checklist")
+
+        checklist = [
+            (
+                "HIGH-risk Production transports resolved",
+                production_high_count == 0
+            ),
+            (
+                "Overall HIGH-risk concentration acceptable",
+                gate_high_pct < 50
+            ),
+            (
+                "Transport conflicts resolved",
+                conflict_count == 0
+            ),
+            (
+                "Historical failure conditions reviewed",
+                failure_count == 0
+            ),
+            (
+                f"AI anomaly monitoring completed ({anomaly_count:,} anomalies detected)",
+                True
+            )
+        ]
+
+        for item, passed in checklist:
+
+            if passed:
+                st.success(f"✅ {item}")
+
+            else:
+                st.error(f"❌ {item}")
+
+        # --------------------------------------------------------
+        # FINAL COMMAND
+        # --------------------------------------------------------
+        st.divider()
+
+        if release_ready:
+
+            st.markdown(
+                """
+                <div style="
+                    padding:25px;
+                    border-radius:15px;
+                    background:#123d2b;
+                    border:2px solid #2ecc71;
+                    text-align:center;
+                ">
+                    <div style="font-size:3rem;">🟢</div>
+                    <div style="
+                        font-size:2rem;
+                        font-weight:bold;
+                        color:#2ecc71;
+                    ">
+                        RELEASE APPROVED
+                    </div>
+                    <div style="
+                        color:#ddd;
+                        margin-top:10px;
+                    ">
+                        AI Release Commander recommends proceeding.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        else:
+
+            st.markdown(
+                """
+                <div style="
+                    padding:25px;
+                    border-radius:15px;
+                    background:#451f25;
+                    border:2px solid #ff4d4d;
+                    text-align:center;
+                ">
+                    <div style="font-size:3rem;">🔴</div>
+                    <div style="
+                        font-size:2rem;
+                        font-weight:bold;
+                        color:#ff4d4d;
+                    ">
+                        RELEASE BLOCKED
+                    </div>
+                    <div style="
+                        color:#ddd;
+                        margin-top:10px;
+                    ">
+                        Remediate the identified risks and re-run
+                        the Deployment Gate before release.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+                    
                         # --------------------------------------------------------
     # EMPTY STATE
     # ================================================================
