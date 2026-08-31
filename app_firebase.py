@@ -20,6 +20,7 @@ from reportlab.lib.units import inch
 import datetime
 from sklearn.ensemble import IsolationForest
 import time
+import textwrap
 import json
 import uuid
 import re
@@ -3663,8 +3664,288 @@ Keep the response professional and suitable for a C-suite review.
                 "✅ RELEASE CAN PROCEED\n\n"
                 "The current dataset does not contain critical deployment blockers."
             )
+                   # --------------------------------------------------------
+        # WHY THIS DECISION? — RISK DRIVER EXPLAINABILITY
+        # --------------------------------------------------------
+        st.markdown("### 🧠 Why This Decision?")
 
         # --------------------------------------------------------
+        # CALCULATE INDIVIDUAL RISK CONTRIBUTIONS
+        # Uses the same penalty logic as the Release Score.
+        # --------------------------------------------------------
+        risk_driver_production = 0
+        risk_driver_high_concentration = min(gate_high_pct * 0.5, 40)
+        risk_driver_conflicts = 0
+        risk_driver_anomalies = 0
+
+        if production_high_count > 0:
+            risk_driver_production = min(
+                production_high_count / max(gate_total, 1) * 100,
+                25
+            )
+
+        if conflict_count > 0:
+            risk_driver_conflicts = min(
+                conflict_count / max(gate_total, 1) * 100,
+                15
+            )
+
+        if anomaly_count > 0:
+            risk_driver_anomalies = min(
+                anomaly_count / max(gate_total, 1) * 100,
+                10
+            )
+
+        # --------------------------------------------------------
+        # BUILD AND SORT RISK DRIVERS
+        # --------------------------------------------------------
+        risk_drivers = sorted([
+            (
+                "Production HIGH-Risk Exposure",
+                risk_driver_production,
+                f"{production_high_count:,} Production HIGH-risk transports"
+            ),
+            (
+                "Overall HIGH-Risk Concentration",
+                risk_driver_high_concentration,
+                f"{gate_high_pct:.1f}% of transports are HIGH risk"
+            ),
+            (
+                "Transport Conflicts",
+                risk_driver_conflicts,
+                f"{conflict_count:,} transport conflicts detected"
+            ),
+            (
+                "AI Anomaly Exposure",
+                risk_driver_anomalies,
+                f"{anomaly_count:,} unusual transport patterns detected"
+            )
+        ], key=lambda x: x[1], reverse=True)
+
+        # --------------------------------------------------------
+        # DECISION BANNER
+        # --------------------------------------------------------
+        if release_ready:
+            st.success(
+                f"🟢 RELEASE READY — Release Risk Score: "
+                f"{100 - release_score:.0f}/100"
+            )
+        else:
+            st.error(
+                f"🔴 NO-GO — Release Risk Score: "
+                f"{100 - release_score:.0f}/100"
+            )
+
+        st.caption(
+            "The following factors contributed most to the "
+            "current release-risk assessment."
+        )
+
+        # --------------------------------------------------------
+        # RISK DRIVER CARDS — NATIVE STREAMLIT RENDERING
+        # Avoid raw HTML so the explanation cannot appear as literal markup.
+        # --------------------------------------------------------
+        visible_drivers = [
+            item for item in risk_drivers if item[1] > 0
+        ]
+
+        if visible_drivers:
+            for rank, (driver, contribution, explanation) in enumerate(
+                visible_drivers,
+                start=1
+            ):
+                st.markdown(f"**{rank}. {driver}**")
+                c_driver, c_detail = st.columns([1, 3])
+
+                with c_driver:
+                    st.metric(
+                        "Risk Contribution",
+                        f"+{contribution:.1f}"
+                    )
+
+                with c_detail:
+                    st.caption(explanation)
+                    st.progress(
+                        min(contribution / 40, 1.0),
+                        text=f"{contribution:.1f} risk points"
+                    )
+        else:
+            st.success(
+                "No measurable risk drivers are currently contributing "
+                "to the release-risk score."
+            )
+
+        # --------------------------------------------------------
+        # PRIMARY CONCERN
+        # --------------------------------------------------------
+        if production_high_count > 0:
+            primary_concern = (
+                "High-risk Production transports require "
+                "remediation before deployment."
+            )
+        elif gate_high_pct >= 50:
+            primary_concern = (
+                "Overall HIGH-risk concentration is above "
+                "the configured release threshold."
+            )
+        elif conflict_count > 0:
+            primary_concern = (
+                "Transport conflicts require investigation "
+                "before release."
+            )
+        elif anomaly_count > 0:
+            primary_concern = (
+                "Unusual transport patterns were detected "
+                "and require review."
+            )
+        else:
+            primary_concern = (
+                "No critical release-risk driver was detected."
+            )
+
+        st.info(f"🎯 **Primary Concern:** {primary_concern}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         # EXECUTIVE SUMMARY
         # --------------------------------------------------------
         st.markdown("### 🧠 AI Executive Summary")
