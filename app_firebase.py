@@ -37,7 +37,7 @@ from utils.firebase_helper import (
     save_chat_history,
     fetch_chat_history,
     clear_collection,
-    save_release_override
+    save_release_override,
 )
 # ---------------- FIREBASE AUTHENTICATION ----------------
 
