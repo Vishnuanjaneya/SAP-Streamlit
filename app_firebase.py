@@ -36,7 +36,8 @@ from utils.firebase_helper import (
     fetch_ai_insights,
     save_chat_history,
     fetch_chat_history,
-    clear_collection
+    clear_collection,
+    save_release_override
 )
 # ---------------- FIREBASE AUTHENTICATION ----------------
 
@@ -3790,8 +3791,138 @@ should {'not proceed until the identified risks are remediated' if not release_r
                 """,
                 unsafe_allow_html=True
             )
+                    # --------------------------------------------------------
+        # HUMAN RELEASE DECISION
+        # --------------------------------------------------------
+        st.divider()
+
+        st.markdown("### 👤 Human Release Decision")
+
+        st.caption(
+            "AI provides the recommendation. The authorized user "
+            "retains final decision authority."
+        )
+
+        # Current AI recommendation
+        if release_ready:
+            ai_recommendation = "GO"
+        else:
+            ai_recommendation = "NO-GO"
+
+        st.info(
+            f"🤖 **AI Recommendation:** {ai_recommendation}  \n"
+            f"📊 **Release Readiness Score:** {release_score:.0f}/100"
+        )
+
+        human_decision = st.radio(
+            "Select your final decision",
+            [
+                "Accept AI Recommendation",
+                "Override AI Recommendation"
+            ],
+            key="release_human_decision"
+        )
+
+        # --------------------------------------------------------
+        # ACCEPT AI RECOMMENDATION
+        # --------------------------------------------------------
+        if human_decision == "Accept AI Recommendation":
+
+            final_decision = ai_recommendation
+
+            if final_decision == "GO":
+
+                st.success(
+                    "🟢 Final Decision: GO — AI recommendation accepted."
+                )
+
+            else:
+
+                st.error(
+                    "🔴 Final Decision: NO-GO — AI recommendation accepted."
+                )
+
+        # --------------------------------------------------------
+        # OVERRIDE AI RECOMMENDATION
+        # --------------------------------------------------------
+        else:
+
+            st.warning(
+                f"⚠️ You are overriding the AI recommendation: "
+                f"**{ai_recommendation}**"
+            )
+
+            override_decision = st.radio(
+                "Select the final decision",
+                ["GO", "NO-GO"],
+                horizontal=True,
+                key="override_final_decision"
+            )
+
+            override_reason = st.text_area(
+                "Reason for overriding the AI recommendation",
+                placeholder=(
+                    "Enter the business or operational reason "
+                    "for overriding the AI recommendation..."
+                ),
+                key="override_reason"
+            )
+
+            if st.button(
+                "💾 Confirm Human Override",
+                type="primary",
+                use_container_width=True,
+                key="confirm_release_override"
+            ):
+
+                if not override_reason.strip():
+
+                    st.error(
+                        "Please provide a reason for the human override."
+                    )
+
+                elif override_decision == ai_recommendation:
+
+                    st.warning(
+                        "The selected decision is the same as the AI "
+                        "recommendation. Please select a different decision "
+                        "to perform an override."
+                    )
+
+                else:
+
+                    user_email = st.session_state.get(
+                        "user_email",
+                        "Unknown User"
+                    )
+
+                    try:
+
+                        save_release_override(
+                            transport_id="RELEASE_GATE",
+                            ai_recommendation=ai_recommendation,
+                            ai_risk_score=release_score,
+                            final_decision=override_decision,
+                            override_reason=override_reason.strip(),
+                            user_email=user_email
+                        )
+
+                        st.success(
+                            f"✅ Human override recorded successfully. "
+                            f"Final Decision: {override_decision}"
+                        )
+
+                        st.info(
+                            f"👤 Decision by: {user_email}"
+                        )
+
+                    except Exception as e:
+
+                        st.error(
+                            f"Unable to save the override decision: {e}"
+                        )
                     
-                        # --------------------------------------------------------
+                     # --------------------------------------------------------
     # EMPTY STATE
     # ================================================================
 else:

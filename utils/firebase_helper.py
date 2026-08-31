@@ -137,6 +137,27 @@ def save_ai_insight(transport_id, insight, collection="ai_insights"):
         "insight": insight,
         "timestamp": datetime.datetime.now().isoformat()
     })
+# ---------------- SAVE RELEASE OVERRIDE ----------------
+def save_release_override(
+    transport_id,
+    ai_recommendation,
+    ai_risk_score,
+    final_decision,
+    override_reason,
+    user_email
+):
+    db = init_firebase()
+
+    db.collection("override_history").add({
+        "transport_id": str(transport_id),
+        "ai_recommendation": str(ai_recommendation),
+        "ai_risk_score": float(ai_risk_score),
+        "final_decision": str(final_decision),
+        "action": "HUMAN_OVERRIDE",
+        "override_reason": str(override_reason),
+        "user_email": str(user_email),
+        "timestamp": datetime.datetime.now().isoformat()
+    })
 
 # ---------------- FETCH AI INSIGHTS ----------------
 def fetch_ai_insights(collection="ai_insights"):
@@ -147,6 +168,7 @@ def fetch_ai_insights(collection="ai_insights"):
         return {}
 
     return {doc.id: doc.to_dict() for doc in docs}
+
 
 # ---------------- SAVE CHAT HISTORY ----------------
 def save_chat_history(session_id, messages, collection="chat_history"):
